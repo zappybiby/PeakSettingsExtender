@@ -57,6 +57,7 @@ public class Plugin : BaseUnityPlugin
         }
 
         updateTabsRoutine = StartCoroutine(UpdateTabs(scene));
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private IEnumerator UpdateTabs(Scene scene)
@@ -74,10 +75,6 @@ public class Plugin : BaseUnityPlugin
         if (buttonSrc != null)
         {
             Logger.LogInfo("Found TABS/General");
-
-            foreach (Transform child in buttonSrc.transform.parent)
-                if (child != buttonSrc.transform)
-                    Destroy(child.gameObject);
 
             foreach (var (name, category) in SettingsRegistry.GetPages())
             {
