@@ -57,7 +57,6 @@ public class Plugin : BaseUnityPlugin
         }
 
         updateTabsRoutine = StartCoroutine(UpdateTabs(scene));
-        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     private IEnumerator UpdateTabs(Scene scene)
