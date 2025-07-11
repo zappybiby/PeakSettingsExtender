@@ -15,18 +15,24 @@ public class Plugin : BaseUnityPlugin
 {
     internal static new ManualLogSource Logger;
     private GameObject buttonSrc;
-    private Coroutine updateTabsRoutine;
         
     private void Awake()
     {
+        // Plugin startup logic
         Logger = base.Logger;
         Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
         new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
     }
 
-    private void Start() { }
+    private void Start()
+    {
+        //
+    }
 
-    private void OnEnable()  => SceneManager.sceneLoaded += OnSceneLoaded;
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
 
     private void OnDisable()
     {
@@ -38,14 +44,18 @@ public class Plugin : BaseUnityPlugin
         }
     }
 
+    private Coroutine updateTabsRoutine;
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         buttonSrc = null;
+
         if (updateTabsRoutine != null)
         {
             StopCoroutine(updateTabsRoutine);
             updateTabsRoutine = null;
         }
+
         updateTabsRoutine = StartCoroutine(UpdateTabs(scene));
     }
 
@@ -53,30 +63,34 @@ public class Plugin : BaseUnityPlugin
     {
         Logger.LogInfo("Scene loadeeeed: " + scene.name);
 
-        while (buttonSrc == null)
-        {
+        while (buttonSrc == null) {
             List<SettingsTABSButton> buttons = FindAllInScene(scene);
-            if (buttons.Count != 0)
+            if (buttons.Count != 0) {
                 buttonSrc = buttons[0].gameObject;
+            }
             yield return new WaitForSeconds(.050f);
         }
 
-        foreach (Transform child in buttonSrc.transform.parent)
-            if (child != buttonSrc.transform)
-                Destroy(child.gameObject);
-
-        Logger.LogInfo("Found TABS/General");
-
-        foreach (var (name, category) in SettingsRegistry.GetPages())
+        if (buttonSrc != null)
         {
-            Logger.LogInfo($"Creating {name} with category {category}");
-            GameObject newButton = Instantiate(buttonSrc, buttonSrc.transform.parent);
-            var loc = newButton.GetComponentInChildren<LocalizedText>();
-            // Fix General tab issue: remove LocalizedText so our custom tab name isn't overwritten
-            if (loc != null) Destroy(loc);
-            SettingsTABSButton tabsButton = newButton.GetComponent<SettingsTABSButton>();
-            tabsButton.category = category;
-            tabsButton.text.text = name;
+            Logger.LogInfo("Found TABS/General");
+
+            foreach (Transform child in buttonSrc.transform.parent)
+                if (child != buttonSrc.transform)
+                    Destroy(child.gameObject);
+
+            foreach (var (name, category) in SettingsRegistry.GetPages())
+            {
+                Logger.LogInfo($"Creating {name} with category {category}");
+                GameObject newButton = Instantiate(buttonSrc, buttonSrc.transform.parent);
+                // Fix General tab issue: prevent LocalizedText overwrite
+                var loc = newButton.GetComponentInChildren<LocalizedText>();
+                if (loc != null)
+                    Destroy(loc);
+                SettingsTABSButton tabsButton = newButton.GetComponent<SettingsTABSButton>();
+                tabsButton.category = category;
+                tabsButton.text.text = name;
+            }
         }
     }
 
@@ -84,7 +98,10 @@ public class Plugin : BaseUnityPlugin
     {
         var result = new List<SettingsTABSButton>();
         foreach (var root in scene.GetRootGameObjects())
-            result.AddRange(root.GetComponentsInChildren<SettingsTABSButton>(true));
+        {
+            var found = root.GetComponentsInChildren<SettingsTABSButton>();
+            result.AddRange(found);
+        }
         return result;
     }
 }
@@ -95,19 +112,29 @@ public class SettingsRegistry
 
     public static void Register(string name)
     {
-        if (nameToCategoryId.ContainsKey(name)) return;
+        if (!nameToCategoryId.ContainsKey(name))
+        {
+            SettingsCategory highestId = Enum.GetValues(typeof(SettingsCategory)).Cast<SettingsCategory>().Max();
+            if (nameToCategoryId.Count != 0)
+            {
+                highestId = nameToCategoryId.Values.Max();
+            }
 
-        int builtInMax = Enum.GetValues(typeof(SettingsCategory)).Cast<int>().Max();
-        int customMax  = nameToCategoryId.Count == 0 ? 0 : nameToCategoryId.Values.Max(v => (int)v);
-        nameToCategoryId[name] = (SettingsCategory)(Math.Max(builtInMax, customMax) + 1);
+            nameToCategoryId[name] = highestId + 1;
+        }
     }
 
-    public static string GetPageId(string name) => nameToCategoryId[name].ToString();
+    public static string GetPageId(string name)
+    {
+        return nameToCategoryId[name].ToString();
+    }
 
-    public static Dictionary<string, SettingsCategory> GetPages() => nameToCategoryId;
+    public static Dictionary<string, SettingsCategory> GetPages() {
+        return nameToCategoryId;
+    }
 }
 
-/* Strip “LOC: ” prefix when localisation key is missing */
+// strip "LOC: " prefix when localisation key is missing
 [HarmonyPatch(typeof(LocalizedText), "GetText", new Type[] { typeof(string), typeof(bool) })]
 static class StripLocPrefixPatch
 {
