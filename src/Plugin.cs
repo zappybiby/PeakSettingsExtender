@@ -134,14 +134,16 @@ public class SettingsRegistry
     }
 }
 
-// strip "LOC: " prefix when localisation key is missing
+// Prefix patch to skip LOC fallback
 [HarmonyPatch(typeof(LocalizedText), "GetText", new Type[] { typeof(string), typeof(bool) })]
-static class StripLocPrefixPatch
+static class GetTextPrefixPatch
 {
-    static void Postfix(ref string __result)
+    static bool Prefix(string id, bool printDebug, ref string __result)
     {
-        const string prefix = "LOC: ";
-        if (__result.StartsWith(prefix))
-            __result = __result.Substring(prefix.Length);
+        id = id.ToUpperInvariant();
+        if (LocalizedText.mainTable.TryGetValue(id, out var row))
+            return true;
+        __result = id;
+        return false;
     }
 }
