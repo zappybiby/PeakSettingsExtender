@@ -1,83 +1,162 @@
-# Settings Extender
-An extremely simple way to add new pages to the Settings window.
+# SettingsExtenderForked
 
-![Screenshot of the settings page, showing a new tab called "Demo Page" and a setting option called "Demo Slider".](https://raw.githubusercontent.com/jspapp/PeakSettingsExtender/refs/heads/main/screenshot.jpg)
+This is a fork of the original [PeakSettingsExtender by jspapp](https://thunderstore.io/c/peak/p/JSPAPP/Settings_Extender/) with a few improvements to address the issues caused by Patch 1.7 as well as optional helpers that reduce boilerplate.
 
-## Who is this for?
-Dependencies and modders. This will either be required for a mod you want to use, or you want to include it as part of your own mod to have in-game settings.
+**Full Backward Compatibility:**  
+Mods built using the original SettingsExtender will work with this forked version without any changes.
 
-## Installation
-The contents of `plugins/` is moved into `PEAK/BepInEx/plugins/`.
+---
 
-## How to use in a mod
+## Main Improvements
 
-### Include DLL reference
-Add a line like so similar to others in your `.csproj` file to include it in your project:
+- **Patch 1.7 Compatible**  
+  - Fixes the issue where your settings page tab would be renamed to “GENERAL.”  
+  - Fixes the problem where every setting had “LOC:” in the name. 
 
-```C#
-<ItemGroup>
-    <Reference Include="PEAK\BepInEx\plugins\SettingsExtender.dll" />
-</ItemGroup>
-```
+- **Additional Helpers added to API**
+  - See Github page for more info
 
-### Register page
-Call `SettingsRegistry.Register(string pageName)` in your plugin's `Awake` method:
+## **Declarative Syntax with `[ExtenderSetting]` Attribute**  
 
-```C#
-using BepInEx;
-using SettingsExtender;
+  #### Original
+  ```csharp
+  // In your Plugin's Awake() method:
+  SettingsRegistry.Register("My Mod Page");
 
-public class Plugin : BaseUnityPlugin
-{
-    private void Awake()
-    {
-        SettingsRegistry.Register("Demo Page");
-    }
-}
-```
+  // In your setting's class file:
+  internal class MyToggleSetting : BoolSetting, IExposedSetting
+  {
+      // You had to implement these methods yourself.
+      public string GetDisplayName() => "Enable Awesome Feature";
+      public string GetCategory()    => SettingsRegistry.GetPageId("My Mod Page");
 
-### Create settings
-This isn't a tutorial, but you'll need to create a class for each setting you want to include. There's a couple built-in under `Zorro.Settings` in the assembly, check them out and how PEAK uses them (like `FovSetting`).
+      // ... other required methods
+  }
+  ```
 
-```C#
-public class DemoSliderSetting : FloatSetting, IExposedSetting
-{
-    public string GetDisplayName()
-    {
-        return "Demo Slider";
-    }
+  #### Forked
+  ```csharp
+  // No code needed in Awake()!
 
-    public string GetCategory()
-    {
-        // Get our fake SettingsCategory id as a string
-        return SettingsRegistry.GetPageId("Demo Page");
-    }
+  // In your setting's class file:
+  [ExtenderSetting(page: "My Mod Page", displayName: "Enable Awesome Feature")]
+  internal class MyToggleSetting : ExtenderBoolSetting
+  {
+      // GetDisplayName() and GetCategory() are handled by the base class.
+      // ... other logic
+  }
+  ```
 
-    protected override float GetDefaultValue()
-    {
-        return 50;
-    }
+## **Boilerplate-Reducing Base Classes**  
 
-    protected override float2 GetMinMaxValue()
-    {
-        return new float2(0, 100);
-    }
+  #### Original
+  ```csharp
+  internal class MyToggleSetting : BoolSetting, IExposedSetting
+  {
+      // Required for UI
+      public string GetDisplayName() => "My Toggle";
+      public string GetCategory()    => "Some_Category_ID";
 
-    public override void ApplyValue()
-    {
-        // 
-    }
-}
-```
+      // Required for functionality
+      public override void ApplyValue()   { /* Your logic here */ }
+      protected override bool GetDefaultValue() => true;
 
-### Add settings
-Once your setting is created, include it by setting it up with `SettingsHandler` in your plugin's `Start` method:
+      // Required boilerplate for BoolSetting
+      public override LocalizedString OnString  => null;
+      public override LocalizedString OffString => null;
+  }
+  ```
 
-```C#
-private void Start()
-{
-    SettingsHandler.Instance.AddSetting(new DemoSliderSetting());
-}
-```
+  #### Forked
+  ```csharp
+  [ExtenderSetting("My Page", "My Toggle")]
+  internal class MyToggleSetting : ExtenderBoolSetting
+  {
+      // ApplyValue is handled by the constructor callback (see next point).
+      // OnString and OffString are handled by the base class.
 
-Once that's added it'll get picked up and included on the settings menu.
+      // You only need to provide what's unique to your setting!
+      protected override bool GetDefaultValue() => true;
+  }
+  ```
+
+## **Simplified OnChanged Callbacks**  
+
+  #### Original
+  ```csharp
+  internal class MyVolumeSetting : FloatSetting, IExposedSetting
+  {
+      public override void ApplyValue()
+      {
+          // Call a method in your main plugin class
+          MyPlugin.Instance.UpdateVolume(this.Value);
+      }
+      // ... other boilerplate
+  }
+  ```
+
+  #### Forked
+  ```csharp
+  [ExtenderSetting("Audio", "Master Volume")]
+  internal class MyVolumeSetting : ExtenderFloatSetting
+  {
+      public MyVolumeSetting() : base(newVolumeValue =>
+      {
+          // Your logic is now a clean one-liner.
+          MyPlugin.Instance.UpdateVolume(newVolumeValue);
+      })
+      {
+      }
+
+      // ... other logic
+  }
+  ```
+
+## **One-Liner Setting Registration**  
+
+  #### Original
+  ```csharp
+  // In your Plugin's Start() method:
+  var mySetting = new MyAwesomeSetting();
+  SettingsHandler.Instance.AddSetting(mySetting);
+  ```
+
+  #### Forked
+  ```csharp
+  // In your Plugin's Start() method:
+  var mySetting = SettingsHandler.Instance.Add<MyAwesomeSetting>();
+  ```
+
+## **Expanded Setting Types (e.g., Generic Enum)**  
+
+  #### Original
+  ```csharp
+  public enum QualityLevel { Low, Medium, High }
+
+  internal class QualitySetting : IntSetting, IEnumSetting, IExposedSetting
+  {
+      // A lot of manual implementation was needed.
+      public List<string> GetUnlocalizedChoices() 
+          => new List<string>(Enum.GetNames(typeof(QualityLevel)));
+
+      public new GameObject GetSettingUICell() 
+          => SingletonAsset<InputCellMapper>.Instance.EnumSettingCell;
+
+      public int GetValue() => Value;
+      public void SetValue(int v, ISettingHandler h, bool ui) 
+          => base.SetValue(v, h);
+      // ... plus all the IExposedSetting and other boilerplate.
+  }
+  ```
+
+  #### Forked
+  ```csharp
+  public enum QualityLevel { Low, Medium, High }
+
+  [ExtenderSetting("Graphics", "Texture Quality")]
+  internal class QualitySetting : ExtenderEnumSetting<QualityLevel>
+  {
+      // That's it! The base class handles enum names
+      // and all the IEnumSetting logic for you.
+  }
+  ```
