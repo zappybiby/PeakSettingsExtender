@@ -136,10 +136,10 @@ static class GetTextPrefixPatch
 {
     static bool Prefix(string id, bool printDebug, ref string __result)
     {
-        id = id.ToUpperInvariant();
-        if (LocalizedText.mainTable.TryGetValue(id, out var row))
+        var upper = id.ToUpperInvariant();
+        if (LocalizedText.mainTable.TryGetValue(upper, out var row))
             return true;
-        __result = id;
+        __result = upper;
         return false;
     }
 }
