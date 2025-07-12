@@ -3,7 +3,7 @@
 This is a fork of the original [PeakSettingsExtender by jspapp](https://thunderstore.io/c/peak/p/JSPAPP/Settings_Extender/) with a few improvements to address the issues caused by Patch 1.7 as well as optional helpers that reduce boilerplate.
 
 **Full Backward Compatibility:**  
-Mods built using the original SettingsExtender will work with this forked version without any changes.
+Mods built using the original SettingsExtender should work with this forked version without any changes.
 
 ---
 
