@@ -1,3 +1,9 @@
+// -----------------------------------------------------------------------------
+//  SettingsExtenderForked – v0.1.0
+//  Based on PeakSettingsExtender v0.1.0
+//    by jspapp (https://github.com/jspapp/PeakSettingsExtender)
+// -----------------------------------------------------------------------------
+
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -9,19 +15,24 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace SettingsExtender;
-
-[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+public static class PluginInfo
+{
+	public const string PLUGIN_GUID    = "com.pharmacomaniac.settingsextenderforked";
+	public const string PLUGIN_NAME    = "Settings Extender Forked";
+	public const string PLUGIN_VERSION = "0.1.0";
+}
+[BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
-    internal static new ManualLogSource Logger;
-    private GameObject buttonSrc;
+    internal static new ManualLogSource Logger = null!;
+    private GameObject? buttonSrc;
         
     private void Awake()
     {
         // Plugin startup logic
         Logger = base.Logger;
-        Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
-        new Harmony(MyPluginInfo.PLUGIN_GUID).PatchAll();
+        Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
+        new Harmony(PluginInfo.PLUGIN_GUID).PatchAll();
     }
 
     private void Start()
@@ -44,7 +55,7 @@ public class Plugin : BaseUnityPlugin
         }
     }
 
-    private Coroutine updateTabsRoutine;
+    private Coroutine? updateTabsRoutine;
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
@@ -136,10 +147,10 @@ static class GetTextPrefixPatch
 {
     static bool Prefix(string id, bool printDebug, ref string __result)
     {
-        id = id.ToUpperInvariant();
-        if (LocalizedText.mainTable.TryGetValue(id, out var row))
+        var upper = id.ToUpperInvariant();
+        if (LocalizedText.mainTable.TryGetValue(upper, out var row))
             return true;
-        __result = id;
+        __result = upper;
         return false;
     }
 }
