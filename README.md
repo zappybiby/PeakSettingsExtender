@@ -14,7 +14,7 @@ Mods built using the original SettingsExtender should work with this forked vers
   - Fixes the problem where every setting had “LOC:” in the name. 
 
 - **Additional Helpers added to API**
-  - See Github page for more info
+  - See README, HOWTOUSE, and HelloWorld.cs
 
 ## **Declarative Syntax with `[ExtenderSetting]` Attribute**  
 
