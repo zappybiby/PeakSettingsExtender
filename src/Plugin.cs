@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-//  SettingsExtenderForked – v0.1.0
+//  SettingsExtenderForked – v0.1.4
 //  Based on PeakSettingsExtender v0.1.0
 //    by jspapp (https://github.com/jspapp/PeakSettingsExtender)
 // -----------------------------------------------------------------------------
@@ -19,18 +19,31 @@ public static class PluginInfo
 {
 	public const string PLUGIN_GUID    = "com.pharmacomaniac.settingsextenderforked";
 	public const string PLUGIN_NAME    = "Settings Extender Forked";
-	public const string PLUGIN_VERSION = "0.1.0";
+	public const string PLUGIN_VERSION = "0.1.4";
 }
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
+	private static bool hasInitialized = false;
     internal static new ManualLogSource Logger = null!;
     private GameObject? buttonSrc;
         
-    private void Awake()
+	private void Awake()
     {
-        // Plugin startup logic
-        Logger = base.Logger;
+		// First, get a reference to the logger so we can use it in the guard clause.
+		Logger = base.Logger;
+
+		if (hasInitialized) 
+		{
+			// A duplicate instance has been created. Log it and destroy this component.
+			Logger.LogWarning("Duplicate instance of SettingsExtender detected. Destroying this instance to prevent conflicts.");
+			Destroy(this); // 'this' refers to this component instance.
+			return;
+		}
+		
+		hasInitialized = true;
+        
+        // Plugin startup logic can now proceed, knowing it's the one and only instance.
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
         new Harmony(PluginInfo.PLUGIN_GUID).PatchAll();
     }
