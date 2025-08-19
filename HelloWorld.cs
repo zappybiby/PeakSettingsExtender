@@ -31,7 +31,7 @@ public class Plugin : BaseUnityPlugin
         // 1. REGISTER THE SETTING
         // Use the new Add<T>() method. It creates the setting, registers it,
         // and returns the instance all in one clean line.
-        MyFontSizeSetting = SettingsHandler.Instance.Add<FontSizeSetting>();
+        MyFontSizeSetting = SettingsHandler.Instance.AddSetting<FontSizeSetting>();
         
         // 2. INITIALIZE THE GUI STYLE
         // Create a style for our OnGUI text. We do this once in Start() for performance.
