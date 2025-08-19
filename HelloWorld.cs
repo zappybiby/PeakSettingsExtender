@@ -6,9 +6,7 @@ using Unity.Mathematics;
 
 namespace HelloWorldExample;
 
-// Define plugin metadata and declare a dependency on the forked SettingsExtender
 [BepInPlugin("com.myname.helloworldexample", "HelloWorldExample", "1.0.0")]
-// [BepInDependency(SettingsExtender.PluginInfo.PLUGIN_GUID)]
 public class Plugin : BaseUnityPlugin
 {
     // A singleton instance for easy access from other classes (like our setting class)
