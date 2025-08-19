@@ -124,7 +124,7 @@ Mods built using the original SettingsExtender should work with this forked vers
   #### Forked
   ```csharp
   // In your Plugin's Start() method:
-  var mySetting = SettingsHandler.Instance.Add<MyAwesomeSetting>();
+  var mySetting = SettingsHandler.Instance.AddSetting<MyAwesomeSetting>();
   ```
 
 ## **Expanded Setting Types (e.g., Generic Enum)**  
