@@ -29,7 +29,7 @@ public class Plugin : BaseUnityPlugin
     private void Start()
     {
         // 1. REGISTER THE SETTING
-        // Use the new Add<T>() method. It creates the setting, registers it,
+        // Use the new AddSetting<T>() method. It creates the setting, registers it,
         // and returns the instance all in one clean line.
         MyFontSizeSetting = SettingsHandler.Instance.AddSetting<FontSizeSetting>();
         
