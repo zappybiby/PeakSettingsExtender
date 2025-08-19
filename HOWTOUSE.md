@@ -64,7 +64,7 @@ internal class CoolFeatureToggle : ExtenderBoolSetting
 Now that you've defined your setting, you need to tell the game to load it. This is done in your main BepInEx plugin file.
 
 1. In your plugin's `Start()` method, get the game's `SettingsHandler`.  
-2. Use the `Add<T>()` method provided by this fork to instantiate and register your setting in one line.  
+2. Use the `AddSetting<T>()` method provided by this fork to instantiate and register your setting in one line.  
 3. Store the returned instance in a static field so you can access its value from anywhere in your mod.
 
 Here's what your main plugin file would look like:
@@ -91,8 +91,8 @@ public class CoolModPlugin : BaseUnityPlugin
 
     private void Start()
     {
-        // Add<T> creates the setting, registers it, and returns the instance.
-        coolFeatureToggle = SettingsHandler.Instance.Add<CoolFeatureToggle>();
+        // AddSetting<T> creates the setting, registers it, and returns the instance.
+        coolFeatureToggle = SettingsHandler.Instance.AddSetting<CoolFeatureToggle>();
         
         Logger.LogInfo("CoolMod settings registered!");
     }
@@ -150,7 +150,7 @@ To register it, just add another line in your `Start()` method:
 
 ```csharp
 // In CoolModPlugin.Start()
-intensitySlider = SettingsHandler.Instance.Add<IntensitySlider>();
+intensitySlider = SettingsHandler.Instance.AddSetting<IntensitySlider>();
 ```
 
 #### Example: An Enum Setting (Dropdown)
@@ -188,7 +188,7 @@ Register it just like the others:
 
 ```csharp
 // In CoolModPlugin.Start()
-qualityDropdown = SettingsHandler.Instance.Add<QualityDropdown>();
+qualityDropdown = SettingsHandler.Instance.AddSetting<QualityDropdown>();
 ```
 
 You can then access the selected value with `qualityDropdown.Value`, which will be of type `EffectQuality`.
